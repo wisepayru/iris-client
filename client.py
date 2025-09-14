@@ -1,6 +1,6 @@
 import os
 import httpx
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from uuid import UUID
 from . import models
 
@@ -116,7 +116,7 @@ class Client:
         req, resp, data = await self._request("GET", f"/slip/{slip_uuid}")
         return req, resp, models.SlipByUuidResponse.model_validate(data)
 
-    async def get_slips(self, sku: Optional[str] = None, only_actual: bool = True) -> Tuple[httpx.Request, httpx.Response, list[models.SlipByUuidResponse]]:
+    async def get_slips(self, sku: Optional[str] = None, only_actual: bool = True) -> Tuple[httpx.Request, httpx.Response, List[models.SlipByUuidResponse]]:
         """
         Retrieve a list of slips, with optional filtering.
         """
