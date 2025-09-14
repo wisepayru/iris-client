@@ -1,5 +1,6 @@
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel, UUID4, Field
 from typing import Optional, List, Dict, Any
+import datetime
 
 class OrderResponse(BaseModel):
     order_uuid: UUID4
@@ -70,3 +71,43 @@ class OrderCreateResponse(BaseModel):
     platform_order_id: str
     order_price: float
     platform_fee_amount: float
+
+
+class SlipCreateRequest(BaseModel):
+    item_sku: str
+    slip: str
+
+
+class SlipResponse(BaseModel):
+    slip_uuid: UUID4
+    item_sku: str
+    slip: str
+    actual_flg: bool
+    created_dttm: datetime.datetime
+    updated_dttm: datetime.datetime
+
+
+class SlipCreateResponse(BaseModel):
+    message: str
+    data: SlipResponse
+
+
+class SlipActualUpdateResponse(BaseModel):
+    message: str
+    slip_uuid: UUID4
+
+
+class SlipBySkuResponse(BaseModel):
+    slip: str
+
+
+class SlipByUuidResponse(BaseModel):
+    slip_uuid: UUID4 = Field(..., alias='uuid')
+    item_sku: str
+    slip: str
+    actual_flg: bool
+    created_dttm: datetime.datetime
+    updated_dttm: datetime.datetime
+
+    class Config:
+        from_attributes = True
