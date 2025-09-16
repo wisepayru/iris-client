@@ -2,6 +2,7 @@ import os
 import httpx
 from typing import Optional, Tuple, List
 from uuid import UUID
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 from . import models
 
 class Client:
@@ -38,6 +39,11 @@ class Client:
         if self._client:
             await self._client.aclose()
 
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(2),
+        retry=retry_if_exception_type((httpx.RequestError, httpx.TimeoutException))
+    )
     async def _request(self, method: str, url: str, **kwargs) -> Tuple[httpx.Request, httpx.Response, dict]:
         """
         Helper method to make a request and handle responses.
@@ -94,7 +100,6 @@ class Client:
         """
         req, resp, data = await self._request("GET", f"/order/{order_uuid}/items")
         return req, resp, models.OrderItemsResponse.model_validate(data)
-
     async def create_slip(self, slip_data: models.SlipCreateRequest) -> Tuple[httpx.Request, httpx.Response, models.SlipCreateResponse]:
         """
         Creates a new slip.
@@ -125,12 +130,12 @@ class Client:
             params['sku'] = sku
         if only_actual:
             params['onlyActual'] = only_actual
-        
+
         req, resp, data = await self._request("GET", "/slips", params=params)
-        
+
         # Assuming the response is a list of slip objects
         validated_slips = [models.SlipByUuidResponse.model_validate(slip_data) for slip_data in data]
-        
+
         return req, resp, validated_slips
 
     async def get_slip_by_sku(self, item_sku: str) -> Tuple[httpx.Request, httpx.Response, models.SlipBySkuResponse]:
