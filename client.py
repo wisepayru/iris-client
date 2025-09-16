@@ -1,7 +1,8 @@
 import os
 import httpx
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple
 from uuid import UUID
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 from . import models
 
 class Client:
@@ -38,6 +39,11 @@ class Client:
         if self._client:
             await self._client.aclose()
 
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(2),
+        retry=retry_if_exception_type(httpx.RequestError)
+    )
     async def _request(self, method: str, url: str, **kwargs) -> Tuple[httpx.Request, httpx.Response, dict]:
         """
         Helper method to make a request and handle responses.
@@ -94,48 +100,3 @@ class Client:
         """
         req, resp, data = await self._request("GET", f"/order/{order_uuid}/items")
         return req, resp, models.OrderItemsResponse.model_validate(data)
-
-    async def create_slip(self, slip_data: models.SlipCreateRequest) -> Tuple[httpx.Request, httpx.Response, models.SlipCreateResponse]:
-        """
-        Creates a new slip.
-        """
-        req, resp, data = await self._request("POST", "/slip", json=slip_data.model_dump(mode='json'))
-        return req, resp, models.SlipCreateResponse.model_validate(data)
-
-    async def make_slip_actual(self, slip_uuid: UUID) -> Tuple[httpx.Request, httpx.Response, models.SlipActualUpdateResponse]:
-        """
-        Sets a specific slip as the actual one.
-        """
-        req, resp, data = await self._request("POST", f"/slip/{slip_uuid}/makeActual")
-        return req, resp, models.SlipActualUpdateResponse.model_validate(data)
-
-    async def get_slip_by_uuid(self, slip_uuid: UUID) -> Tuple[httpx.Request, httpx.Response, models.SlipByUuidResponse]:
-        """
-        Retrieve slip data by its UUID.
-        """
-        req, resp, data = await self._request("GET", f"/slip/{slip_uuid}")
-        return req, resp, models.SlipByUuidResponse.model_validate(data)
-
-    async def get_slips(self, sku: Optional[str] = None, only_actual: bool = True) -> Tuple[httpx.Request, httpx.Response, List[models.SlipByUuidResponse]]:
-        """
-        Retrieve a list of slips, with optional filtering.
-        """
-        params = {}
-        if sku:
-            params['sku'] = sku
-        if only_actual:
-            params['onlyActual'] = only_actual
-        
-        req, resp, data = await self._request("GET", "/slips", params=params)
-        
-        # Assuming the response is a list of slip objects
-        validated_slips = [models.SlipByUuidResponse.model_validate(slip_data) for slip_data in data]
-        
-        return req, resp, validated_slips
-
-    async def get_slip_by_sku(self, item_sku: str) -> Tuple[httpx.Request, httpx.Response, models.SlipBySkuResponse]:
-        """
-        Retrieve the actual slip for a given item_sku.
-        """
-        req, resp, data = await self._request("GET", f"/sku/{item_sku}/slip")
-        return req, resp, models.SlipBySkuResponse.model_validate(data)
