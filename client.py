@@ -1,6 +1,6 @@
 import os
 import httpx
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from uuid import UUID
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 from . import models
