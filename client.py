@@ -42,7 +42,7 @@ class Client:
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_fixed(2),
-        retry=retry_if_exception_type(httpx.RequestError)
+        retry=retry_if_exception_type((httpx.RequestError, httpx.TimeoutException))
     )
     async def _request(self, method: str, url: str, **kwargs) -> Tuple[httpx.Request, httpx.Response, dict]:
         """
