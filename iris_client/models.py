@@ -1,4 +1,4 @@
-from pydantic import BaseModel, UUID4, Field
+from pydantic import BaseModel, ConfigDict, UUID4, Field
 from typing import Optional, List, Dict, Any
 import datetime
 
@@ -102,12 +102,11 @@ class SlipBySkuResponse(BaseModel):
 
 
 class SlipByUuidResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     slip_uuid: UUID4 = Field(..., alias='uuid')
     item_sku: str
     slip: str
     actual_flg: bool
     created_dttm: datetime.datetime
     updated_dttm: datetime.datetime
-
-    class Config:
-        from_attributes = True
