@@ -5,7 +5,7 @@ build-backend = "setuptools.backends.legacy:build"
 [project]
 name = "iris-client"
 description = "Python client for the Iris API"
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 license = { text = "MPL-2.0" }
 dynamic = ["version"]
 dependencies = [
