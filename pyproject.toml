@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "iris-client"
 description = "Python client for the Iris API"
-requires-python = ">=3.10"
+requires-python = ">=3.14"
 license = { text = "MPL-2.0" }
 dynamic = ["version"]
 dependencies = [
@@ -14,8 +14,8 @@ dependencies = [
     "tenacity",
 ]
 
-[project.optional-dependencies]
-dev = ["pytest"]
+# Test dependencies live in requirements-test.txt (pinned, per #108):
+#   pip install -e . -r requirements-test.txt
 
 [project.urls]
 Repository = "https://github.com/wisepayru/iris-client"
