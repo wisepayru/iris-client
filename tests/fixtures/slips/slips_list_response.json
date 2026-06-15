@@ -1,0 +1,18 @@
+[
+  {
+    "uuid": "33dbf274-4c1c-4287-a774-31f6d70d16af",
+    "item_sku": "apple-1000",
+    "slip": "0JDQutGC0LjQstC40YDRg9C50YLQtSDQutCw0YDRgtGDINGB0L7Qs9C70LDRgdC90L4g0LjQvdGB0YLRgNGD0LrRhtC40LggU3BvdGlmeSwg0LIg0LvQuNGH0L3QvtC8INC60LDQsdC40L3QtdGC0LUg0L3QsCBzcG90aWZ5LmNvbS4=",
+    "actual_flg": true,
+    "created_dttm": "2026-06-13T13:21:54+03:00",
+    "updated_dttm": "2026-06-13T16:05:11+03:00"
+  },
+  {
+    "uuid": "e137b25d-35e3-4fbe-82c1-ec79a12a33ed",
+    "item_sku": "spotify-giftcard-usa-3-month",
+    "slip": "0JDQutGC0LjQstC40YDRg9C50YLQtSDQutCw0YDRgtGDINGB0L7Qs9C70LDRgdC90L4g0LjQvdGB0YLRgNGD0LrRhtC40LguIA==",
+    "actual_flg": true,
+    "created_dttm": "2026-06-12T09:14:02+03:00",
+    "updated_dttm": "2026-06-12T09:14:02+03:00"
+  }
+]

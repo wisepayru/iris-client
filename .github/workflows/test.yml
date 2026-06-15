@@ -44,9 +44,7 @@ jobs:
         run: .venv/bin/ruff check .
 
       - name: Run tests
-        # Threshold starts at 0 while only the import smoke test exists; the
-        # behavioral test PR raises it once test_client.py / test_models.py land.
-        run: .venv/bin/pytest --cov-fail-under=0
+        run: .venv/bin/pytest --cov-fail-under=90
 
       - name: Cleanup virtualenv
         if: always()
