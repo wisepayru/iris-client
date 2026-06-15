@@ -1,0 +1,27 @@
+{
+  "order_uuid": "ce3bac49-e15d-4d1c-9e41-8d9a5fb8fc52",
+  "items": [
+    {
+      "item_uuid": "d9e2cff0-037c-46cb-9820-e30d1a4887ef",
+      "item_sku": "apple-giftcard-500-try",
+      "item_code": "21312323",
+      "item_price": 1299,
+      "item_cost": 0,
+      "order_uuid": "ce3bac49-e15d-4d1c-9e41-8d9a5fb8fc52",
+      "platform_name": "YANDEX_MARKET",
+      "platform_order_id": "57960645632",
+      "platform_item_id": "1124022645"
+    },
+    {
+      "item_uuid": "e3ab0598-28aa-4055-aef7-e19448e7caab",
+      "item_sku": "apple-giftcard-500-try",
+      "item_code": "123123123131",
+      "item_price": 1299,
+      "item_cost": 0,
+      "order_uuid": "ce3bac49-e15d-4d1c-9e41-8d9a5fb8fc52",
+      "platform_name": "YANDEX_MARKET",
+      "platform_order_id": "57960645632",
+      "platform_item_id": "1124022645"
+    }
+  ]
+}
