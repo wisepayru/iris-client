@@ -42,7 +42,11 @@ class Client:
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_fixed(2),
-        retry=retry_if_exception_type((httpx.RequestError, httpx.TimeoutException))
+        retry=retry_if_exception_type((httpx.RequestError, httpx.TimeoutException)),
+        # Re-raise the underlying httpx error on exhaustion instead of wrapping
+        # it in tenacity.RetryError, so consumers can catch httpx exceptions
+        # directly (#20).
+        reraise=True,
     )
     async def _request(
         self,

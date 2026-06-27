@@ -11,7 +11,6 @@ from uuid import UUID
 
 import httpx
 import pytest
-import tenacity
 
 from iris_client import Client, models
 
@@ -323,12 +322,11 @@ async def test_http_status_error_is_not_retried(mock_iris, load_fixture, fast_re
 
 
 async def test_network_error_retries_then_raises(mock_iris, fast_retry):
-    # ConnectError is an httpx.RequestError -> retried up to 5 attempts. The
-    # decorator has no reraise=True, so the exhausted error surfaces wrapped in
-    # tenacity.RetryError (the underlying error is on __cause__).
+    # ConnectError is an httpx.RequestError -> retried up to 5 attempts. With
+    # reraise=True (#20) the underlying httpx error surfaces directly, not
+    # wrapped in tenacity.RetryError.
     mock_iris.fail(httpx.ConnectError("boom"))
     async with make_client() as client:
-        with pytest.raises(tenacity.RetryError) as exc:
+        with pytest.raises(httpx.ConnectError):
             await client.get_order(ORDER_UUID)
     assert len(mock_iris.requests) == 5
-    assert isinstance(exc.value.last_attempt.exception(), httpx.ConnectError)
