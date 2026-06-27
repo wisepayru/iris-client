@@ -311,14 +311,27 @@ async def test_non_2xx_raises_and_still_sends_trace(mock_iris, load_fixture):
     assert mock_iris.last_request.headers["X-Trace-Id"] == TRACE["X-Trace-Id"]
 
 
-async def test_http_status_error_is_not_retried(mock_iris, load_fixture, fast_retry):
-    # raise_for_status raises HTTPStatusError, which is not a RequestError, so
-    # the tenacity retry must NOT kick in: exactly one request is made.
-    mock_iris.respond_json(load_fixture("errors/invalid_token_403.json"), status_code=403)
+@pytest.mark.parametrize("status_code", [400, 403, 404, 409, 422])
+async def test_permanent_4xx_is_not_retried(mock_iris, fast_retry, status_code):
+    # Caller errors (incl. 403/404) are permanent -> raise on the first attempt.
+    mock_iris.respond_json({"detail": "nope"}, status_code=status_code)
     async with make_client() as client:
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(httpx.HTTPStatusError) as exc:
             await client.get_order(ORDER_UUID)
+    assert exc.value.response.status_code == status_code
     assert len(mock_iris.requests) == 1
+
+
+@pytest.mark.parametrize("status_code", [429, 502, 503, 504])
+async def test_transient_status_is_retried_then_raises(mock_iris, fast_retry, status_code):
+    # Transient server statuses (#5) are retried up to 5 attempts, then the
+    # HTTPStatusError surfaces directly (reraise=True, #20).
+    mock_iris.respond_json({"detail": "later"}, status_code=status_code)
+    async with make_client() as client:
+        with pytest.raises(httpx.HTTPStatusError) as exc:
+            await client.get_order(ORDER_UUID)
+    assert exc.value.response.status_code == status_code
+    assert len(mock_iris.requests) == 5
 
 
 async def test_network_error_retries_then_raises(mock_iris, fast_retry):
