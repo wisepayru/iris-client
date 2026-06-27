@@ -152,11 +152,12 @@ class Client:
         only_actual: bool = True,
         headers: Optional[Dict[str, str]] = None,
     ) -> Tuple[httpx.Request, httpx.Response, List[models.SlipByUuidResponse]]:
-        params = {}
+        # Always send onlyActual: omitting it on False let the server fall back
+        # to its onlyActual=True default, so non-actual slips were unreachable
+        # (#14). httpx serialises the bool to "true"/"false".
+        params = {'onlyActual': only_actual}
         if sku:
             params['sku'] = sku
-        if only_actual:
-            params['onlyActual'] = only_actual
         req, resp, data = await self._request("GET", "/slips", params=params, extra_headers=headers)
         return req, resp, [models.SlipByUuidResponse.model_validate(s) for s in data]
 

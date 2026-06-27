@@ -237,12 +237,9 @@ async def test_get_slips_with_sku(mock_iris, load_fixture):
     assert params.get("onlyActual") == "true"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="#14 get_slips(only_actual=False) drops the onlyActual param so the "
-    "server falls back to its onlyActual=True default",
-)
 async def test_get_slips_only_actual_false_is_sent(mock_iris, load_fixture):
+    # #14: only_actual=False must be sent so the server returns non-actual slips
+    # (it defaults onlyActual=True when the param is absent).
     mock_iris.respond_json(load_fixture("slips/slips_list_response.json"))
     async with make_client() as client:
         await client.get_slips(only_actual=False)
