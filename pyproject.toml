@@ -1,12 +1,14 @@
 [build-system]
-requires = ["setuptools>=68", "setuptools-scm>=8"]
+# setuptools>=77 for the SPDX-string license + license-files support.
+requires = ["setuptools>=77", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "iris-client"
 description = "Python client for the Iris API"
 requires-python = ">=3.14"
-license = { text = "MPL-2.0" }
+license = "MPL-2.0"
+license-files = ["LICENSE"]
 dynamic = ["version"]
 dependencies = [
     "httpx",
