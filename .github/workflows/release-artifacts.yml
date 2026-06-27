@@ -11,6 +11,13 @@ on:
 permissions:
   contents: write   # upload assets to the release
 
+# Serialise runs per release tag so a redelivered "published" event (or a manual
+# re-run) can't race a second `gh release upload` against the first and trip a
+# 422 "asset already exists". cancel-in-progress: false -> let the first finish.
+concurrency:
+  group: release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
 jobs:
   # Reuse the single source of truth so a release can never ship un-tested code.
   test:
@@ -57,7 +64,31 @@ jobs:
           fi
 
       - name: Upload artifacts to the release
-        run: gh release upload "${{ github.event.release.tag_name }}" dist/* --clobber
+        # Tolerate a non-zero exit here: gh's HTTP layer can retry an upload POST
+        # that already landed server-side, surfacing a spurious 422 "already
+        # exists" even though the asset is attached. The verify step below is the
+        # real gate, so a false failure here no longer reds the job.
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          gh release upload "$TAG" dist/* --clobber \
+            || echo "::warning::gh release upload exited non-zero; verifying attachments next"
+
+      - name: Verify artifacts are attached
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          missing=0
+          for path in dist/*; do
+            name="$(basename "$path")"
+            state="$(gh release view "$TAG" --json assets \
+              --jq ".assets[] | select(.name == \"$name\") | .state")"
+            if [ "$state" = "uploaded" ]; then
+              echo "ok: $name (state=uploaded)"
+            else
+              echo "::error::asset $name is not attached (state='${state:-absent}')"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
 
       - name: Cleanup
         if: always()
