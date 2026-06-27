@@ -11,6 +11,12 @@ on:
     types: [opened, synchronize, reopened]
   workflow_call: {}
 
+# Least privilege: this workflow only lints + tests, it never writes to the repo
+# or the release. The release workflow that calls this one declares its own
+# contents: write where it actually needs it (#9).
+permissions:
+  contents: read
+
 jobs:
   test:
     # push/release always run. PRs run only when the author is an org
