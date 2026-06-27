@@ -1,15 +1,14 @@
 name: tests
 
-# The single source of truth for "did tests pass". Runs standalone on pushes,
-# PRs and releases, and is also called by the release workflow (workflow_call)
-# so it gates on this without duplicating steps.
+# The single source of truth for "did tests pass". Runs standalone on pushes
+# and PRs; on a release it runs as the gating job inside release-artifacts.yml
+# (workflow_call), so there's no standalone `release` trigger here -- that would
+# just duplicate the same run.
 on:
   push:
     branches: ["**"]
   pull_request:
     types: [opened, synchronize, reopened]
-  release:
-    types: [published]
   workflow_call: {}
 
 jobs:
