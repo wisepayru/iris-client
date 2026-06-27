@@ -2,7 +2,13 @@ import httpx
 from importlib.metadata import version, PackageNotFoundError
 from typing import Dict, Optional, Tuple, List
 from uuid import UUID
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_fixed,
+    retry_if_exception,
+    retry_if_exception_type,
+)
 from . import models
 
 try:
@@ -11,6 +17,17 @@ except PackageNotFoundError:
     _version = "dev"
 
 _USER_AGENT = f"wisepay-iris-client/{_version}"
+
+# Transient server-side statuses worth retrying: rate limit + gateway/upstream
+# hiccups (#5). 4xx other than 429 are caller errors and are not retried.
+_RETRYABLE_STATUS_CODES = frozenset({429, 502, 503, 504})
+
+
+def _is_retryable_status_error(exc: BaseException) -> bool:
+    return (
+        isinstance(exc, httpx.HTTPStatusError)
+        and exc.response.status_code in _RETRYABLE_STATUS_CODES
+    )
 
 class Client:
     def __init__(self, token: str, base_url: str):
@@ -42,7 +59,13 @@ class Client:
     @retry(
         stop=stop_after_attempt(5),
         wait=wait_fixed(2),
-        retry=retry_if_exception_type((httpx.RequestError, httpx.TimeoutException)),
+        # Retry transport errors (connect/read/timeout) and transient server
+        # statuses (429/502/503/504, #5). Permanent 4xx (e.g. 403/404) raise
+        # immediately.
+        retry=(
+            retry_if_exception_type((httpx.RequestError, httpx.TimeoutException))
+            | retry_if_exception(_is_retryable_status_error)
+        ),
         # Re-raise the underlying httpx error on exhaustion instead of wrapping
         # it in tenacity.RetryError, so consumers can catch httpx exceptions
         # directly (#20).
